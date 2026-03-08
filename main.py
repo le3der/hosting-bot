@@ -496,7 +496,16 @@ async def restart_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
         running[key]["process"].terminate()
         del running[key]
 
-    process = subprocess.Popen(
+    
+        # منع تشغيل نفس البوت مرتين
+        if key in running:
+            try:
+                if running[key]["process"].poll() is None:
+                    running[key]["process"].terminate()
+            except Exception:
+                pass
+
+        process = subprocess.Popen(
         ["python3", path],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE
@@ -767,6 +776,15 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if len(active) >= PLANS[plan_row[1]]["bots"]:
             await query.message.reply_text("⛔ وصلت للحد الأقصى من البوتات النشطة.")
             return
+        
+        # منع تشغيل نفس البوت مرتين
+        if key in running:
+            try:
+                if running[key]["process"].poll() is None:
+                    running[key]["process"].terminate()
+            except Exception:
+                pass
+
         process = subprocess.Popen(["python3", path], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         running[key] = {"process": process, "uid": uid, "filename": fname, "started": datetime.now().isoformat()}
         inc_runs(uid, fname)
@@ -1163,6 +1181,15 @@ async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await update.message.reply_text("⛔ وصلت للحد الأقصى من البوتات النشطة في باقتك.")
             return
 
+        
+        # منع تشغيل نفس البوت مرتين
+        if key in running:
+            try:
+                if running[key]["process"].poll() is None:
+                    running[key]["process"].terminate()
+            except Exception:
+                pass
+
         process = subprocess.Popen(
             ["python3", path],
             stdout=subprocess.PIPE,
@@ -1411,7 +1438,7 @@ async def monitor(app: Application):
             cleanup_old_logs()
             log.info("🧹 تم تنظيف السجلات القديمة")
 
-        await asyncio.sleep(10)
+        await asyncio.sleep(15)
 
 # ─── main ────────────────────────────────────────────────────────
 async def post_init(app: Application):
